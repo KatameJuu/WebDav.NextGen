@@ -35,7 +35,7 @@ public class WebDav
         throw new NotImplementedException();
     }
 
-    public Task DeleteFileAsync(Uri path), CancellationToken token = default
+    public Task DeleteFileAsync(Uri path, CancellationToken token = default)
     {
         throw new NotImplementedException();
     }
