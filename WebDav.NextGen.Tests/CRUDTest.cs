@@ -23,29 +23,6 @@ namespace WebDav.NextGen.Tests
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>());
         }
-        
-        static Mock<HttpMessageHandler> SetUp(HttpResponseMessage response)
-        {
-            var httpHandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            
-            httpHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response)
-                .Verifiable();
-            
-            httpHandlerMock
-                .Protected()
-                .Setup<HttpResponseMessage>("Send",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns(response)
-                .Verifiable();
-            
-            return httpHandlerMock;
-        }
 
         static void VerifySendAsync(Mock<HttpMessageHandler> mock, Times times, Expression<Func<HttpRequestMessage, bool>> pred)
         {
