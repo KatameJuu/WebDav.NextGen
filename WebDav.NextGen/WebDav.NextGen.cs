@@ -21,7 +21,7 @@ namespace WebDav.NextGen
         {
             _client = client;
         }
-        
+
         public async Task CreateDirectoryAsync(Uri path, CancellationToken token = default)
         {
             var method = new HttpMethod("MKCOL");

@@ -35,20 +35,20 @@ namespace WebDav.NextGen.Tests
                 mock.Protected().Verify("Send", times, ItExpr.Is(pred), ItExpr.IsAny<CancellationToken>());
             }
         }
-        
+
         static void VerifySendAsync(Mock<HttpMessageHandler> mock, Expression<Func<HttpRequestMessage, bool>> pred)
         {
             VerifySendAsync(mock, Times.AtLeast(1), pred);
         }
-        
+
         [Fact]
         public async Task CreateDirectorySuccessTest()
         {
             var response = new HttpResponseMessage(HttpStatusCode.Created);
-            
+
             var hMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             SetupSendAsync(hMock).ReturnsAsync(response).Verifiable();
-            
+
             var wd = new WebDav(new HttpClient(hMock.Object));
             await wd.CreateDirectoryAsync(new Uri("https://foo.bar/baz"));
 
@@ -64,10 +64,10 @@ namespace WebDav.NextGen.Tests
         public async Task CreateDirectoryThrowsSpecific(HttpStatusCode code, Type exceptionType)
         {
             var response = new HttpResponseMessage(code);
-            
+
             var hMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             SetupSendAsync(hMock).ReturnsAsync(response).Verifiable();
-            
+
             var wd = new WebDav(new HttpClient(hMock.Object));
             await Assert.ThrowsAsync(exceptionType, () => wd.CreateDirectoryAsync(new Uri("https://foo.bar/baz")));
         }
@@ -75,13 +75,13 @@ namespace WebDav.NextGen.Tests
         [Fact]
         public async Task CreateDirectoryThrowsOnFailure()
         {
-            foreach (var code in Enum.GetValues<HttpStatusCode>().Where(c => (int) c >= 400))
+            foreach (var code in Enum.GetValues<HttpStatusCode>().Where(c => (int)c >= 400))
             {
                 var response = new HttpResponseMessage(code);
-                
+
                 var hMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
                 SetupSendAsync(hMock).ReturnsAsync(response).Verifiable();
-                
+
                 var wd = new WebDav(new HttpClient(hMock.Object));
 
                 var ex = await Record.ExceptionAsync(() => wd.CreateDirectoryAsync(new Uri("https://foo.bar/baz")));
