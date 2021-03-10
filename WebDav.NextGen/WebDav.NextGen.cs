@@ -42,7 +42,8 @@ namespace WebDav.NextGen
                     case HttpStatusCode.InsufficientStorage:
                         throw new InsufficientSpace(resp.RequestMessage?.RequestUri?.ToString());
                     default:
-                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(), resp.StatusCode);
+                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(),
+                            resp.StatusCode);
                 }
             }
         }
@@ -149,7 +150,8 @@ namespace WebDav.NextGen
                     case HttpStatusCode.Conflict:
                         throw new DoesNotExists(resp.RequestMessage?.RequestUri?.ToString());
                     default:
-                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(), resp.StatusCode);
+                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(),
+                            resp.StatusCode);
                 }
             }
         }
