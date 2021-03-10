@@ -84,9 +84,20 @@ namespace WebDav.NextGen
             }
         }
 
-        public Task DeleteFileAsync(Uri path, CancellationToken token = default)
+        public async Task DeleteFileAsync(Uri path, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var resp = await _client.DeleteAsync(path, token);
+
+            ThrowOnForbidden(resp);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw resp.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => new DoesNotExists(resp.ReasonPhrase),
+                    _ => new WebDavException(resp.ReasonPhrase, resp.StatusCode)
+                };
+            }
         }
 
         private static void ThrowOnForbidden(HttpResponseMessage resp)
