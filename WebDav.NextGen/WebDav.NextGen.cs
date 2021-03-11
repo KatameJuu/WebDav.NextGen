@@ -42,24 +42,31 @@ namespace WebDav.NextGen
                     case HttpStatusCode.InsufficientStorage:
                         throw new InsufficientSpace(resp.RequestMessage?.RequestUri?.ToString());
                     default:
-                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(), resp.StatusCode);
+                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(),
+                            resp.StatusCode);
                 }
             }
         }
 
-        public Task<string> GetStringAsync(Uri path, CancellationToken token = default)
+        public async Task<string> GetStringAsync(Uri path, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var content = await GetAsyncInternal(path, token);
+
+            return await content.ReadAsStringAsync();
         }
 
-        public Task<byte[]> GetBytesAsync(Uri path, CancellationToken token = default)
+        public async Task<byte[]> GetBytesAsync(Uri path, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var content = await GetAsyncInternal(path, token);
+
+            return await content.ReadAsByteArrayAsync();
         }
 
-        public Task<Stream> GetStreamAsync(Uri path, CancellationToken token = default)
+        public async Task<Stream> GetStreamAsync(Uri path, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var content = await GetAsyncInternal(path, token);
+
+            return await content.ReadAsStreamAsync();
         }
 
         public Task WriteFileAsync(Uri path, byte[] data, CancellationToken token = default)
@@ -67,7 +74,8 @@ namespace WebDav.NextGen
             return WriteFileInternal(path, new ByteArrayContent(data), token);
         }
 
-        public async Task WriteFileAsync(Uri path, Stream stream, bool takeOwnership = false, CancellationToken token = default)
+        public async Task WriteFileAsync(Uri path, Stream stream, bool takeOwnership = false,
+            CancellationToken token = default)
         {
             await WriteFileInternal(path, new StreamContent(stream), token);
 
@@ -77,9 +85,20 @@ namespace WebDav.NextGen
             }
         }
 
-        public Task DeleteFileAsync(Uri path, CancellationToken token = default)
+        public async Task DeleteFileAsync(Uri path, CancellationToken token = default)
         {
-            throw new NotImplementedException();
+            var resp = await _client.DeleteAsync(path, token);
+
+            ThrowOnForbidden(resp);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw resp.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => new DoesNotExists(resp.ReasonPhrase),
+                    _ => new WebDavException(resp.ReasonPhrase, resp.StatusCode)
+                };
+            }
         }
 
         private static void ThrowOnForbidden(HttpResponseMessage resp)
@@ -95,6 +114,24 @@ namespace WebDav.NextGen
                         return;
                 }
             }
+        }
+
+        private async Task<HttpContent> GetAsyncInternal(Uri path, CancellationToken token = default)
+        {
+            var resp = await _client.GetAsync(path, token);
+
+            ThrowOnForbidden(resp);
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                throw resp.StatusCode switch
+                {
+                    HttpStatusCode.NotFound => new DoesNotExists(resp.ReasonPhrase),
+                    _ => new WebDavException(resp.ReasonPhrase, resp.StatusCode)
+                };
+            }
+
+            return resp.Content;
         }
 
         private async Task WriteFileInternal(Uri path, HttpContent content, CancellationToken token = default)
@@ -113,7 +150,8 @@ namespace WebDav.NextGen
                     case HttpStatusCode.Conflict:
                         throw new DoesNotExists(resp.RequestMessage?.RequestUri?.ToString());
                     default:
-                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(), resp.StatusCode);
+                        throw new WebDavException(resp.Content == null ? "" : await resp.Content.ReadAsStringAsync(),
+                            resp.StatusCode);
                 }
             }
         }
